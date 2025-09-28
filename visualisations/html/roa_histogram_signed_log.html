@@ -1,0 +1,267 @@
+            <iframe src='about:blank' style='border:none !important;' width='900' height='550' srcdoc="&lt;html lang=&quot;en&quot;>
+   &lt;head>
+       &lt;meta charset=&quot;UTF-8&quot;>
+       &lt;style> html, body { margin: 0; padding: 0; overflow: hidden; } &lt;/style>
+       &lt;script type=&quot;text/javascript&quot; data-lets-plot-script=&quot;library&quot; src=&quot;https://cdn.jsdelivr.net/gh/JetBrains/lets-plot@v4.7.3/js-package/distr/lets-plot.min.js&quot;>&lt;/script>
+   &lt;/head>
+   &lt;body>
+          &lt;div id=&quot;ciawgW&quot;>&lt;/div>
+   &lt;script type=&quot;text/javascript&quot; data-lets-plot-script=&quot;plot&quot;>
+   
+   (function() {
+   // ----------
+   
+   const forceImmediateRender = false;
+   const responsive = false;
+   
+   let sizing = {
+       width_mode: &quot;FIXED&quot;,
+       height_mode: &quot;FIXED&quot;,
+       width: 900.0, 
+       height: 550.0 
+   };
+   
+   const preferredWidth = document.body.dataset.letsPlotPreferredWidth;
+   if (preferredWidth !== undefined) {
+       sizing = {
+           width_mode: 'FIXED',
+           height_mode: 'SCALED',
+           width: parseFloat(preferredWidth)
+       };
+   }
+   
+   const containerDiv = document.getElementById(&quot;ciawgW&quot;);
+   let fig = null;
+   
+   function renderPlot() {
+       if (fig === null) {
+           const plotSpec = {
+&quot;data&quot;:{
+},
+&quot;mapping&quot;:{
+&quot;x&quot;:&quot;ROA_signed_log&quot;
+},
+&quot;data_meta&quot;:{
+&quot;series_annotations&quot;:[{
+&quot;type&quot;:&quot;datetime&quot;,
+&quot;column&quot;:&quot;DT&quot;
+},{
+&quot;type&quot;:&quot;int&quot;,
+&quot;column&quot;:&quot;REGN&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;form&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_assets&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_passives&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_equity&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_liabilities&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;state_equity&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;state_loans&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;individual_loans&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;company_loans&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_loans&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;npl_amount&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;provision_amount&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_deposits&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;total_liquid_assets&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;interest_income&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;operating_income&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;interest_expense&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;operating_expense&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;net_interest_income&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;net_income_amount&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;ROA&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;ROE&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;NIM&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;cost_to_income_ratio&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;npl_ratio&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;llp_to_loans_ratio&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;coverage_ratio&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;loan_to_deposit_ratio&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;liquid_assets_to_total_assets&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;state_equity_pct&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;balance_gap&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_assets&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_liabilities&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_equity&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_passives&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_deposits&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_liquid_assets&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__total_loans&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__state_loans&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__individual_loans&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__company_loans&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__npl_amount&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__provision_amount&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;imputation_flag__state_equity&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;log_total_assets&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;ROA_signed_log&quot;
+}]
+},
+&quot;ggtitle&quot;:{
+&quot;text&quot;:&quot;Distribution of Signed-Log(1+|ROA|)&quot;
+},
+&quot;guides&quot;:{
+&quot;x&quot;:{
+&quot;title&quot;:&quot;signed_log(1+|ROA|)&quot;
+},
+&quot;y&quot;:{
+&quot;title&quot;:&quot;Count&quot;
+}
+},
+&quot;ggsize&quot;:{
+&quot;width&quot;:900.0,
+&quot;height&quot;:550.0
+},
+&quot;kind&quot;:&quot;plot&quot;,
+&quot;scales&quot;:[],
+&quot;layers&quot;:[{
+&quot;geom&quot;:&quot;histogram&quot;,
+&quot;mapping&quot;:{
+},
+&quot;data_meta&quot;:{
+},
+&quot;bins&quot;:120.0,
+&quot;fill&quot;:&quot;seagreen&quot;,
+&quot;color&quot;:&quot;black&quot;,
+&quot;data&quot;:{
+&quot;..count..&quot;:[8.0,26.0,50.0,42.0,43.0,47.0,30.0,29.0,43.0,54.0,64.0,53.0,63.0,60.0,33.0,92.0,73.0,121.0,83.0,129.0,122.0,149.0,122.0,181.0,169.0,186.0,172.0,209.0,223.0,276.0,312.0,345.0,419.0,478.0,578.0,634.0,656.0,818.0,930.0,1052.0,1380.0,1687.0,2148.0,3259.0,31042.0,21255.0,25072.0,11573.0,9080.0,7464.0,6196.0,5081.0,4350.0,3746.0,3413.0,2912.0,2673.0,2317.0,1926.0,1850.0,1610.0,1450.0,1220.0,1202.0,1118.0,1021.0,896.0,838.0,752.0,662.0,635.0,648.0,514.0,495.0,512.0,364.0,396.0,366.0,375.0,248.0,269.0,271.0,257.0,200.0,217.0,190.0,201.0,127.0,196.0,151.0,91.0,84.0,138.0,98.0,116.0,114.0,98.0,78.0,84.0,92.0,80.0,82.0,67.0,58.0,54.0,79.0,65.0,28.0,48.0,58.0,46.0,33.0,53.0,45.0,43.0,35.0,23.0,35.0,34.0,14.0],
+&quot;ROA_signed_log&quot;:[-0.519358925031426,-0.5075554154888233,-0.4957519059462206,-0.4839483964036179,-0.4721448868610152,-0.4603413773184125,-0.44853786777580984,-0.43673435823320716,-0.42493084869060443,-0.4131273391480017,-0.40132382960539903,-0.38952032006279635,-0.3777168105201937,-0.36591330097759095,-0.3541097914349883,-0.34230628189238554,-0.33050277234978287,-0.3186992628071802,-0.30689575326457746,-0.2950922437219748,-0.28328873417937206,-0.2714852246367694,-0.2596817150941667,-0.24787820555156398,-0.2360746960089613,-0.22427118646635863,-0.2124676769237559,-0.20066416738115322,-0.18886065783855055,-0.17705714829594782,-0.16525363875334514,-0.15345012921074241,-0.14164661966813974,-0.12984311012553706,-0.11803960058293433,-0.10623609104033166,-0.09443258149772893,-0.08262907195512625,-0.07082556241252358,-0.05902205286992085,-0.047218543327318174,-0.0354150337847155,-0.02361152424211277,-0.011808014699510094,-4.505156907419483E-6,0.011799004385695255,0.02360251392829804,0.035406023470900716,0.04720953301350339,0.059013042556106066,0.07081655209870874,0.08262006164131153,0.0944235711839142,0.10622708072651688,0.11803059026911955,0.12983409981172223,0.1416376093543249,0.1534411188969277,0.16524462843953036,0.17704813798213304,0.1888516475247357,0.20065515706733839,0.21245866660994117,0.22426217615254385,0.23606568569514652,0.2478691952377492,0.25967270478035187,0.27147621432295466,0.28327972386555733,0.29508323340816,0.3068867429507627,0.31869025249336536,0.33049376203596814,0.3422972715785708,0.3541007811211735,0.36590429066377617,0.37770780020637884,0.3895113097489815,0.4013148192915843,0.413118328834187,0.42492183837678965,0.4367253479193923,0.448528857461995,0.4603323670045978,0.47213587654720046,0.483939386089803,0.4957428956324058,0.5075464051750086,0.5193499147176112,0.531153424260214,0.5429569338028165,0.5547604433454193,0.5665639528880221,0.5783674624306246,0.5901709719732274,0.60197448151583,0.6137779910584328,0.6255815006010356,0.6373850101436381,0.6491885196862409,0.6609920292288435,0.6727955387714463,0.684599048314049,0.6964025578566516,0.7082060673992544,0.720009576941857,0.7318130864844598,0.7436165960270625,0.7554201055696651,0.7672236151122679,0.7790271246548705,0.7908306341974732,0.8026341437400758,0.8144376532826786,0.8262411628252814,0.8380446723678839,0.8498481819104867,0.8616516914530893,0.8734552009956921,0.8852587105382949]
+}
+}],
+&quot;metainfo_list&quot;:[],
+&quot;spec_id&quot;:&quot;6&quot;
+};
+           fig = LetsPlot.buildPlotFromProcessedSpecs(plotSpec, containerDiv, sizing);
+       } else {
+           fig.updateView({});
+       }
+   }
+   
+   const renderImmediately = 
+       forceImmediateRender || (
+           sizing.width_mode === 'FIXED' &amp;&amp; 
+           (sizing.height_mode === 'FIXED' || sizing.height_mode === 'SCALED')
+       );
+   
+   if (renderImmediately) {
+       renderPlot();
+   }
+   
+   if (!renderImmediately || responsive) {
+       // Set up observer for initial sizing or continuous monitoring
+       var observer = new ResizeObserver(function(entries) {
+           for (let entry of entries) {
+               if (entry.contentBoxSize &amp;&amp; 
+                   entry.contentBoxSize[0].inlineSize > 0) {
+                   if (!responsive &amp;&amp; observer) {
+                       observer.disconnect();
+                       observer = null;
+                   }
+                   renderPlot();
+                   if (!responsive) {
+                       break;
+                   }
+               }
+           }
+       });
+       
+       observer.observe(containerDiv);
+   }
+   
+   // ----------
+   })();
+   
+   &lt;/script>
+   &lt;/body>
+&lt;/html>"></iframe>    

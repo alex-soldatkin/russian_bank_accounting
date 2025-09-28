@@ -1,0 +1,282 @@
+            <iframe src='about:blank' style='border:none !important;' width='1400' height='900' srcdoc="&lt;html lang=&quot;en&quot;>
+   &lt;head>
+       &lt;meta charset=&quot;UTF-8&quot;>
+       &lt;style> html, body { margin: 0; padding: 0; overflow: hidden; } &lt;/style>
+       &lt;script type=&quot;text/javascript&quot; data-lets-plot-script=&quot;library&quot; src=&quot;https://cdn.jsdelivr.net/gh/JetBrains/lets-plot@v4.7.3/js-package/distr/lets-plot.min.js&quot;>&lt;/script>
+   &lt;/head>
+   &lt;body>
+          &lt;div id=&quot;NQEz0y&quot;>&lt;/div>
+   &lt;script type=&quot;text/javascript&quot; data-lets-plot-script=&quot;plot&quot;>
+   
+   (function() {
+   // ----------
+   
+   const forceImmediateRender = false;
+   const responsive = false;
+   
+   let sizing = {
+       width_mode: &quot;FIXED&quot;,
+       height_mode: &quot;FIXED&quot;,
+       width: 1400.0, 
+       height: 900.0 
+   };
+   
+   const preferredWidth = document.body.dataset.letsPlotPreferredWidth;
+   if (preferredWidth !== undefined) {
+       sizing = {
+           width_mode: 'FIXED',
+           height_mode: 'SCALED',
+           width: parseFloat(preferredWidth)
+       };
+   }
+   
+   const containerDiv = document.getElementById(&quot;NQEz0y&quot;);
+   let fig = null;
+   
+   function renderPlot() {
+       if (fig === null) {
+           const plotSpec = {
+&quot;data&quot;:{
+},
+&quot;mapping&quot;:{
+&quot;x&quot;:&quot;value_viz&quot;,
+&quot;group&quot;:&quot;facet&quot;
+},
+&quot;data_meta&quot;:{
+&quot;series_annotations&quot;:[{
+&quot;type&quot;:&quot;datetime&quot;,
+&quot;column&quot;:&quot;DT&quot;
+},{
+&quot;type&quot;:&quot;int&quot;,
+&quot;column&quot;:&quot;REGN&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;form&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;variable&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;value&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;lo&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;hi&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;value_viz&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;factor_levels&quot;:[&quot;Net income\n[symlog; L≈9.69e+04]&quot;],
+&quot;column&quot;:&quot;facet&quot;
+}]
+},
+&quot;facet&quot;:{
+&quot;name&quot;:&quot;wrap&quot;,
+&quot;facets&quot;:&quot;facet&quot;,
+&quot;scales&quot;:&quot;free&quot;,
+&quot;order&quot;:1.0,
+&quot;dir&quot;:&quot;h&quot;,
+&quot;labwidth&quot;:24.0
+},
+&quot;guides&quot;:{
+&quot;x&quot;:{
+&quot;title&quot;:&quot;Value (symlog)&quot;
+},
+&quot;y&quot;:{
+&quot;title&quot;:&quot;Density&quot;
+}
+},
+&quot;theme&quot;:{
+&quot;exponent_format&quot;:&quot;pow&quot;,
+&quot;axis_title&quot;:{
+&quot;size&quot;:10.0,
+&quot;blank&quot;:false
+},
+&quot;axis_text_x&quot;:{
+&quot;size&quot;:8.0,
+&quot;blank&quot;:false
+},
+&quot;axis_text_y&quot;:{
+&quot;size&quot;:8.0,
+&quot;blank&quot;:false
+},
+&quot;legend_text&quot;:{
+&quot;size&quot;:8.0,
+&quot;blank&quot;:false
+},
+&quot;legend_title&quot;:{
+&quot;size&quot;:9.0,
+&quot;blank&quot;:false
+},
+&quot;plot_title&quot;:{
+&quot;size&quot;:16.0,
+&quot;blank&quot;:false
+},
+&quot;strip_text&quot;:{
+&quot;size&quot;:9.0,
+&quot;blank&quot;:false
+}
+},
+&quot;ggsize&quot;:{
+&quot;width&quot;:1400.0,
+&quot;height&quot;:900.0
+},
+&quot;kind&quot;:&quot;plot&quot;,
+&quot;scales&quot;:[{
+&quot;aesthetic&quot;:&quot;x&quot;,
+&quot;expand&quot;:[0.06,0.0]
+},{
+&quot;aesthetic&quot;:&quot;y&quot;,
+&quot;expand&quot;:[0.1,0.0]
+}],
+&quot;layers&quot;:[{
+&quot;geom&quot;:&quot;density&quot;,
+&quot;mapping&quot;:{
+},
+&quot;sampling&quot;:{
+&quot;feature-list&quot;:[{
+&quot;sampling&quot;:{
+&quot;name&quot;:&quot;random_stratified&quot;,
+&quot;n&quot;:300000.0,
+&quot;min_subsample&quot;:1000.0
+}
+},{
+&quot;sampling&quot;:{
+&quot;name&quot;:&quot;systematic&quot;,
+&quot;n&quot;:300000.0
+}
+}]
+},
+&quot;tooltips&quot;:&quot;none&quot;,
+&quot;data_meta&quot;:{
+&quot;series_annotations&quot;:[{
+&quot;column&quot;:&quot;facet&quot;,
+&quot;factor_levels&quot;:[&quot;Net income\n[symlog; L≈9.69e+04]&quot;]
+}]
+},
+&quot;trim&quot;:true,
+&quot;n&quot;:256.0,
+&quot;quantiles&quot;:[0.25,0.5,0.75],
+&quot;quantile_lines&quot;:true,
+&quot;data&quot;:{
+&quot;..density..&quot;:[1.9749592077988705E-4,6.819341983911572E-4,5.963019052927834E-4,2.6968928626990853E-4,4.8573531189528943E-4,2.876278998742269E-4,6.423893634033542E-4,9.368106889872475E-4,0.001248231027088943,7.481884045861697E-4,9.886270275464256E-4,0.001597657286097633,0.0011268535863800636,8.439993620640142E-4,7.00513082795755E-4,8.987623066292358E-4,9.966235309567472E-4,0.0017432248097636438,0.0013979805427455578,0.002159450936252566,0.0015167160310029738,8.479463418949613E-4,6.389059312246101E-4,0.0010997121355350793,0.0015213828840713987,0.002024859282837578,0.0014728020335907296,0.0023922391477154375,0.0031771096698465437,0.002314885011344307,0.001901933713914079,0.0027002878049602135,0.0016565867507401862,0.0012449377321922968,0.0016535655054337962,0.0023847067457456682,0.002470380321119231,0.002664757503596384,0.001825020409631133,0.002475714183381658,0.0042774212096728425,0.0021151498416577042,0.0024486304432042388,0.0022903399405825404,0.003123234239555242,0.002212731333943848,0.003084926874472909,0.002499531660130962,0.0018171503489292427,0.0025581047139682993,0.004205696172997565,0.004146049079978655,0.004103231021515309,0.0030499752494136246,0.003865460012762122,0.004528140496256209,0.002405167490986211,0.004005750340357345,0.005765791755578227,0.004710633663099043,0.00425912480921901,0.004040255235313377,0.003864517175867413,0.00518047439431728,0.0041419410703502,0.00487778689549213,0.00345437862800223,0.004257158513860895,0.005561378224970464,0.00505091360143139,0.003565203213888349,0.005128823618820637,0.004486826802723194,0.0045172252494745475,0.006466525870865316,0.00576784913364464,0.005591504075466471,0.0072818015565037,0.00659503033364631,0.005043428260648122,0.004991274022174874,0.0065715591152303975,0.005052154537003552,0.00620022482295652,0.009424367539205355,0.010383371103793818,0.008229785345853663,0.012015426580584812,0.010698531200754764,0.01055661805505503,0.008742701220591126,0.010263836399408265,0.00995389965574623,0.009538314830086126,0.0085218578587045,0.011856166283181292,0.008281996338469997,0.01007988986305329,0.00938346588707564,0.013423951015006388,0.013479557690194799,0.01787532513951038,0.014966768015095396,0.013581943931269963,0.015451621401376436,0.02030554503335614,0.020801941096759806,0.023315331815012837,0.02391122933506924,0.023289926820259665,0.022470951936518897,0.027060221702518743,0.029864891187446285,0.03003457898434308,0.03580621423870672,0.036645442301402445,0.04076471031543669,0.05412074653258669,0.05552933642129216,0.06808747779937568,0.08301884722420462,0.10686653891145646,0.11785084244876115,0.151012779966215,0.20951873153158498,0.30243272761235285,0.4775587201376249,2.092631267768107,2.092631267768107,7.165314384083222,7.165314384083222,4.428395219792284,1.7441858586466894,1.1473419473207733,0.822874852633721,0.822874852633721,0.6417040468727508,0.5055386910058061,0.41061438660030825,0.3777888652104268,0.31189088856718755,0.28065104327218926,0.23639173299251137,0.21436613158819987,0.18199990465641808,0.1801342102644148,0.1692599988120356,0.14134685527611268,0.13643463163582517,0.13608110887782132,0.11961839985592895,0.12305738496508602,0.11371004369703439,0.10771994820145638,0.09666625645418775,0.101833540815735,0.09372343811926254,0.09323282809993066,0.08821379140563203,0.0801399537814024,0.07739673501746389,0.07129899357002581,0.07662448660783992,0.06643449532187927,0.0693928046276656,0.06045506786441642,0.06087648932815184,0.052333891683867664,0.05177574897652667,0.05156153496635394,0.05105256538338878,0.048564707683725804,0.04770343743821625,0.049375157549309705,0.04436276413372769,0.04133456810998081,0.04522496494847444,0.037507350987167676,0.03855779892114941,0.03941944268197815,0.04094378699778055,0.03422732735500076,0.034920029400427634,0.03753216265633487,0.0340851603640625,0.030868648998695677,0.032594134329934826,0.02890995298190753,0.03013070612361607,0.025075588303131845,0.030034226100549545,0.03127064085300368,0.02534888265587265,0.025194938529116518,0.026465377470541417,0.024189714320055476,0.0255481158191573,0.02136160227443294,0.02267759024517987,0.020284482804897575,0.017670467702591255,0.0221231671239898,0.024360662684333054,0.022094333680797797,0.01757667756607881,0.021081317688134687,0.015261620729221539,0.014119117162775075,0.015775301646678584,0.015092937055895348,0.014881952797374367,0.013183997918081003,0.01661056771162057,0.012802507438585048,0.016101053343554005,0.015933665849362642,0.013143562650571138,0.01545662671088571,0.014544814870925946,0.01364704589830492,0.011613116925988314,0.009771325101050317,0.009000221834120718,0.00885477520024354,0.012268234850372749,0.012570103869762903,0.00924724251344304,0.011235496293506373,0.0089448272556255,0.008096052442217614,0.011019063932255818,0.008253434934097708,0.008204300519088149,0.009261988941091065,0.007222386401996295,0.008709341748460254,0.007103359744029534,0.009620744724645651,0.010875415904473528,0.009486616535970124,0.007207184155377658,0.0070555171002814904,0.00718911076980731,0.007901482842855002,0.007270106411212908,0.005658625693274652,0.0064298530516220115,0.003852703166882179,0.0033628912057247543,0.005548457823644417,0.004675562649468066,0.004458275264596239,0.004778598706029678,0.0036364620181230174,0.004328112183459061,0.0048207676178016745,0.004511257576410245,0.00504851632238099,0.0022395937333656354],
+&quot;..quantile..&quot;:[0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],
+&quot;value_viz&quot;:[-4.612198797254235,-4.576013426110125,-4.539828054966014,-4.503642683821902,-4.467457312677792,-4.431271941533681,-4.39508657038957,-4.358901199245459,-4.322715828101348,-4.286530456957237,-4.250345085813127,-4.214159714669016,-4.177974343524904,-4.141788972380794,-4.105603601236683,-4.069418230092572,-4.033232858948461,-3.99704748780435,-3.9608621166602394,-3.9246767455161287,-3.8884913743720175,-3.852306003227907,-3.8161206320837957,-3.779935260939685,-3.7437498897955743,-3.707564518651463,-3.671379147507352,-3.6351937763632414,-3.5990084052191307,-3.56282303407502,-3.526637662930909,-3.4904522917867977,-3.454266920642687,-3.4180815494985763,-3.381896178354465,-3.345710807210354,-3.3095254360662434,-3.2733400649221327,-3.237154693778022,-3.200969322633911,-3.1647839514897997,-3.128598580345689,-3.0924132092015784,-3.0562278380574672,-3.0200424669133565,-2.9838570957692454,-2.9476717246251347,-2.911486353481024,-2.875300982336913,-2.8391156111928018,-2.802930240048691,-2.7667448689045804,-2.7305594977604692,-2.6943741266163586,-2.6581887554722474,-2.6220033843281367,-2.585818013184026,-2.549632642039915,-2.513447270895804,-2.477261899751693,-2.4410765286075824,-2.4048911574634713,-2.3687057863193606,-2.3325204151752494,-2.2963350440311388,-2.260149672887028,-2.223964301742917,-2.1877789305988062,-2.151593559454695,-2.1154081883105844,-2.0792228171664733,-2.0430374460223626,-2.0068520748782515,-1.9706667037341408,-1.93448133259003,-1.898295961445919,-1.8621105903018083,-1.8259252191576971,-1.7897398480135864,-1.7535544768694753,-1.7173691057253646,-1.681183734581254,-1.6449983634371428,-1.608812992293032,-1.572627621148921,-1.5364422500048103,-1.5002568788606991,-1.4640715077165884,-1.4278861365724778,-1.3917007654283666,-1.355515394284256,-1.3193300231401448,-1.2831446519960341,-1.246959280851923,-1.2107739097078123,-1.1745885385637012,-1.1384031674195905,-1.1022177962754798,-1.0660324251313686,-1.029847053987258,-0.9936616828431468,-0.9574763116990361,-0.921290940554925,-0.8851055694108143,-0.8489201982667032,-0.8127348271225925,-0.7765494559784818,-0.7403640848343707,-0.70417871369026,-0.6679933425461488,-0.6318079714020381,-0.5956226002579275,-0.5594372291138168,-0.5232518579697052,-0.4870664868255945,-0.4508811156814838,-0.4146957445373731,-0.37851037339326155,-0.34232500224915086,-0.30613963110504017,-0.2699542599609295,-0.2337688888168188,-0.1975835176727072,-0.16139814652859652,-0.12521277538448583,-0.08902740424037514,-0.05284203309626356,-0.016656661952152874,-0.016656661952152874,0.019528709191957816,0.019528709191957816,0.055714080336068506,0.0918994514801792,0.12808482262429077,0.16427019376840146,0.16427019376840146,0.20045556491251215,0.23664093605662284,0.2728263072007344,0.3090116783448451,0.3451970494889558,0.3813824206330665,0.4175677917771772,0.45375316292128876,0.48993853406539944,0.5261239052095101,0.5623092763536208,0.5984946474977324,0.6346800186418431,0.6708653897859538,0.7070507609300645,0.7432361320741752,0.7794215032182867,0.8156068743623974,0.8517922455065081,0.8879776166506188,0.9241629877947295,0.9603483589388411,0.9965337300829518,1.0327191012270625,1.0689044723711731,1.1050898435152847,1.1412752146593954,1.177460585803506,1.2136459569476168,1.2498313280917275,1.286016699235839,1.3222020703799497,1.3583874415240604,1.3945728126681711,1.4307581838122827,1.4669435549563934,1.503128926100504,1.5393142972446148,1.5754996683887255,1.611685039532837,1.6478704106769477,1.6840557818210584,1.720241152965169,1.7564265241092798,1.7926118952533914,1.828797266397502,1.8649826375416128,1.9011680086857234,1.937353379829835,1.9735387509739457,2.0097241221180564,2.045909493262167,2.082094864406278,2.1182802355503894,2.1544656066945,2.1906509778386107,2.2268363489827214,2.263021720126833,2.2992070912709437,2.3353924624150544,2.371577833559165,2.4077632047032758,2.4439485758473873,2.480133946991498,2.5163193181356087,2.5525046892797194,2.588690060423831,2.6248754315679417,2.6610608027120524,2.697246173856163,2.7334315450002737,2.7696169161443853,2.805802287288496,2.8419876584326067,2.8781730295767174,2.914358400720829,2.9505437718649397,2.9867291430090503,3.022914514153161,3.0590998852972717,3.0952852564413833,3.131470627585494,3.1676559987296047,3.2038413698737154,3.240026741017826,3.2762121121619376,3.3123974833060483,3.348582854450159,3.3847682255942697,3.4209535967383804,3.457138967882491,3.4933243390266018,3.5295097101707142,3.565695081314825,3.6018804524589356,3.6380658236030463,3.674251194747157,3.7104365658912677,3.7466219370353784,3.782807308179489,3.8189926793235998,3.8551780504677122,3.891363421611823,3.9275487927559336,3.9637341639000443,3.999919535044155,4.036104906188266,4.072290277332376,4.108475648476487,4.144661019620598,4.18084639076471,4.217031761908821,4.253217133052932,4.289402504197042,4.325587875341153,4.361773246485264,4.397958617629374,4.434143988773485,4.470329359917596,4.506514731061708,4.542700102205819,4.57888547334993,4.61507084449404],
+&quot;facet&quot;:[&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;,&quot;Net income\n[symlog; L≈9.69e+04]&quot;]
+}
+},{
+&quot;geom&quot;:&quot;label&quot;,
+&quot;data&quot;:{
+&quot;facet&quot;:[&quot;Net income\n[symlog; L≈9.69e+04]&quot;],
+&quot;x_pos&quot;:[1.3502408702464384],
+&quot;y_pos&quot;:[4.1798578113883895],
+&quot;label&quot;:[&quot;n=177,864\nzeros=1.0%\nmedian=0.0466\nIQR=0.192&quot;]
+},
+&quot;mapping&quot;:{
+&quot;x&quot;:&quot;x_pos&quot;,
+&quot;y&quot;:&quot;y_pos&quot;,
+&quot;label&quot;:&quot;label&quot;
+},
+&quot;data_meta&quot;:{
+&quot;series_annotations&quot;:[{
+&quot;type&quot;:&quot;int&quot;,
+&quot;column&quot;:&quot;n&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;zeros_pct&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q05&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q10&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q25&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q50&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q75&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q90&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;q95&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;iqr&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;x_pos&quot;
+},{
+&quot;type&quot;:&quot;float&quot;,
+&quot;column&quot;:&quot;y_pos&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;factor_levels&quot;:[&quot;Net income\n[symlog; L≈9.69e+04]&quot;],
+&quot;column&quot;:&quot;facet&quot;
+},{
+&quot;type&quot;:&quot;str&quot;,
+&quot;column&quot;:&quot;label&quot;,
+&quot;factor_levels&quot;:[&quot;n=177,864\nzeros=1.0%\nmedian=0.0466\nIQR=0.192&quot;]
+}]
+},
+&quot;nudge_x&quot;:0.3,
+&quot;hjust&quot;:16.0,
+&quot;vjust&quot;:1.0,
+&quot;size&quot;:3.0,
+&quot;alpha&quot;:0.1,
+&quot;fill&quot;:&quot;gray92&quot;
+}],
+&quot;metainfo_list&quot;:[],
+&quot;spec_id&quot;:&quot;8&quot;
+};
+           fig = LetsPlot.buildPlotFromProcessedSpecs(plotSpec, containerDiv, sizing);
+       } else {
+           fig.updateView({});
+       }
+   }
+   
+   const renderImmediately = 
+       forceImmediateRender || (
+           sizing.width_mode === 'FIXED' &amp;&amp; 
+           (sizing.height_mode === 'FIXED' || sizing.height_mode === 'SCALED')
+       );
+   
+   if (renderImmediately) {
+       renderPlot();
+   }
+   
+   if (!renderImmediately || responsive) {
+       // Set up observer for initial sizing or continuous monitoring
+       var observer = new ResizeObserver(function(entries) {
+           for (let entry of entries) {
+               if (entry.contentBoxSize &amp;&amp; 
+                   entry.contentBoxSize[0].inlineSize > 0) {
+                   if (!responsive &amp;&amp; observer) {
+                       observer.disconnect();
+                       observer = null;
+                   }
+                   renderPlot();
+                   if (!responsive) {
+                       break;
+                   }
+               }
+           }
+       });
+       
+       observer.observe(containerDiv);
+   }
+   
+   // ----------
+   })();
+   
+   &lt;/script>
+   &lt;/body>
+&lt;/html>"></iframe>    
