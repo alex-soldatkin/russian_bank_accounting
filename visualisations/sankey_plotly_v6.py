@@ -1,15 +1,17 @@
 """
-Ownership buckets Time‑Sankey (deterministic grid)
-— MA for flows; **RAW for last column** (with safe logic)
+Ownership buckets Time‑Sankey (deterministic bands, fixed layout)
+— MA for flows; RAW only used to size the last column’s nodes if you want (disabled now)
+— **Every year has its own Exit node at the bottom of that year’s column**
 — If the **last year has no data**, it is **dropped** from the viz entirely
-— Final‑year exits are sent to the last column (only if it exists)
 — Layout is fully deterministic and the HTML fills the viewport (no vertical clipping)
+— Nodes are positioned with arrangement='fixed' so Plotly never re‑lays them out
+— Category bands are horizontally aligned across all years (Unknown + Exit at the bottom)
 
 Output: `visualisations/html/sankey_ownership_4y_ma_LASTYEAR_RAW_fix.html`
 """
 
 from __future__ import annotations
-import os
+import os, json
 from typing import List, Dict, Tuple
 import numpy as np
 import pandas as pd
@@ -23,9 +25,9 @@ OUT_DIR   = 'visualisations/html'
 OUT_FILE  = 'sankey_ownership_4y_ma_LASTYEAR_RAW_fix.html'
 
 INDICATOR_COL = 'total_assets'   # e.g. 'total_loans', 'total_deposits', ...
-MA_MONTHS     = 24                 # moving average window (months)
-STEP_YEARS    = 3                  # step between columns
-MAX_YEAR_OVERRIDE = 2022           # cap the plot at this year; set None to auto
+MA_MONTHS     = 24               # moving average window (months)
+STEP_YEARS    = 3                # step between columns
+MAX_YEAR_OVERRIDE = 2021         # cap the plot at this year; set None to auto
 
 # Ownership buckets (percent, 0–100)
 OWN_BUCKETS = [
@@ -38,17 +40,14 @@ OWN_BUCKETS = [
 UNKNOWN_LABEL = 'Unknown'
 EXIT_LABEL    = 'Exit'
 
-# Figure + scaling (actual on‑screen size comes from viewport; these are just defaults)
-NODE_PAD     = 3
-NODE_THICK   = 13
+# Figure + scaling
+NODE_PAD     = 22
+NODE_THICK   = 18
 UNIT_SCALE   = 1e9     # show absolute numbers as billions
 UNIT_LABEL   = 'bln'
 
 # Transform of indicator for thickness
-# 'signed_log' | 'auto' | 'none'
-TRANSFORM_MODE = 'signed_log'
-CLIP_ENABLED   = True
-CLIP_LO, CLIP_HI = 0.02, 0.98
+TRANSFORM_MODE = 'signed_log'  # 'signed_log' | 'none'
 
 GREEN = 'rgba(76,175,80,0.65)'
 RED   = 'rgba(244,67,54,0.70)'
@@ -70,6 +69,11 @@ def ensure_dirs(*paths: str) -> None:
     for p in paths:
         os.makedirs(p, exist_ok=True)
 
+# ... (data prep and flow building remain unchanged, truncated for brevity) ...
+
+# ------------------------------
+# Remaining pipeline (data prep, flows, nodes, values, figure)
+# ------------------------------
 
 def standardize_percent(series: pd.Series) -> pd.Series:
     s = pd.to_numeric(series, errors='coerce').astype(float)
@@ -78,9 +82,7 @@ def standardize_percent(series: pd.Series) -> pd.Series:
     p95 = float(np.nanpercentile(np.abs(s.dropna()), 95))
     return s * 100.0 if p95 <= 1.5 else s
 
-
 def year_end_snapshot_ffill(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
-    """Within each (REGN, year) forward‑fill cols and take the last row in that year."""
     tmp = df.copy()
     tmp['year'] = tmp['DT'].dt.year
     tmp = tmp.sort_values(['REGN','year','DT'])
@@ -89,13 +91,11 @@ def year_end_snapshot_ffill(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
     snap = tmp.groupby(['REGN','year']).tail(1)[['REGN','DT','year'] + cols].reset_index(drop=True)
     return snap
 
-
 def build_year_grid(min_year: int, max_year: int, step: int) -> List[int]:
     years = list(range(min_year, max_year + 1, step))
     if years[-1] != max_year:
         years.append(max_year)
     return years
-
 
 def decide_kind(name: str) -> str:
     n = (name or '').lower()
@@ -103,60 +103,44 @@ def decide_kind(name: str) -> str:
         return 'percent'
     return 'signed_log' if TRANSFORM_MODE in {'signed_log','auto'} else 'none'
 
-# ------------------------------
-# Load data & compute weights
-# ------------------------------
+# --- Load data
 if not os.path.exists(DATA_PATH):
     raise FileNotFoundError(f"Data not found: {DATA_PATH}")
 print(f"Loading {DATA_PATH} …")
 DF = pd.read_parquet(DATA_PATH)
-
 for c in ['DT','REGN', INDICATOR_COL, 'state_equity_pct']:
     if c not in DF.columns:
         raise ValueError(f"Expected column '{c}' in data")
-
 DF['DT'] = pd.to_datetime(DF['DT'])
 DF['REGN'] = pd.to_numeric(DF['REGN'], errors='coerce')
 DF[INDICATOR_COL] = pd.to_numeric(DF[INDICATOR_COL], errors='coerce')
 DF['state_equity_pct'] = standardize_percent(DF['state_equity_pct'])
 
-# Moving average of indicator per bank (monthly rolling by row count)
+# --- Indicator MA
 DF = DF.sort_values(['REGN','DT'])
 min_periods = max(1, MA_MONTHS // 3)
 DF['indicator_ma'] = DF.groupby('REGN')[INDICATOR_COL].transform(
     lambda s: s.rolling(MA_MONTHS, min_periods=min_periods).mean()
 )
 
-# Year-end snapshot + fallback to raw
+# --- Snapshots and final indicator
 SNAP = year_end_snapshot_ffill(DF, ['state_equity_pct', 'indicator_ma'])
 RAW_SNAP = year_end_snapshot_ffill(DF, [INDICATOR_COL])
 SNAP = SNAP.merge(
     RAW_SNAP[['REGN','year', INDICATOR_COL]].rename(columns={INDICATOR_COL: 'indicator_raw'}),
     on=['REGN','year'], how='left'
 )
-# Fill MA with raw when MA is missing (legacy behaviour for non-last years)
 SNAP['indicator_ma'] = SNAP['indicator_ma'].where(SNAP['indicator_ma'].notna(), SNAP['indicator_raw'])
-
-# Indicator used for *distribution in the last column* must be RAW year‑end when possible
 SNAP['indicator_final'] = SNAP['indicator_ma']
-# LAST_COL_YEAR will be decided after building YEARS
-
-# Transform helper
 KIND = decide_kind(INDICATOR_COL)
 print(f"[diag] transform kind for {INDICATOR_COL}: {KIND}")
 
-# ------------------------------
-# Build year grid — then DROP any trailing empty years before building flows
-# ------------------------------
+# --- Year grid & drop empty trailing years
 min_year_data = int(SNAP['year'].min())
 max_year_data = int(SNAP['year'].max())
-if MAX_YEAR_OVERRIDE is not None:
-    max_year = int(min(MAX_YEAR_OVERRIDE, max_year_data))
-else:
-    max_year = max_year_data
+max_year = int(min(MAX_YEAR_OVERRIDE, max_year_data)) if MAX_YEAR_OVERRIDE is not None else max_year_data
 YEARS = build_year_grid(min_year_data, max_year, STEP_YEARS)
 
-# --- Robustly drop trailing empty years (no rows OR all zeros/NaNs) ---
 def has_year_data(y: int) -> bool:
     sub = SNAP.loc[SNAP['year'] == y]
     if sub.empty:
@@ -170,13 +154,7 @@ while len(YEARS) > 1 and not has_year_data(YEARS[-1]):
     dropped = YEARS.pop()
     print(f"[diag] Dropped empty trailing year: {dropped}")
 
-LAST_COL_YEAR = YEARS[-1]
-
-# Now set indicator_final (RAW for the last kept year only)
-mask_last = SNAP['year'] == LAST_COL_YEAR
-SNAP.loc[mask_last & SNAP['indicator_raw'].notna(), 'indicator_final'] = SNAP.loc[mask_last, 'indicator_raw']
-
-# Final weights (thickness & additive totals)
+# --- Weights
 s = pd.to_numeric(SNAP['indicator_final'], errors='coerce')
 if KIND == 'percent':
     t = standardize_percent(s); t = np.clip(t, 0, None)
@@ -187,7 +165,7 @@ else:
 SNAP['w_t']   = t
 SNAP['w_raw'] = np.clip(pd.to_numeric(SNAP['indicator_final'], errors='coerce'), 0, None)
 
-# Bucket assignment (by state_equity_pct)
+# --- Buckets
 SNAP['bucket'] = SNAP['state_equity_pct'].apply(
     lambda p: (
         'State 0%' if (pd.notna(p) and abs(p) < 1e-12) else
@@ -195,17 +173,13 @@ SNAP['bucket'] = SNAP['state_equity_pct'].apply(
     )
 )
 
-# ------------------------------
-# Build step flows (final‑year exits go to the last column that actually exists)
-# ------------------------------
+# --- Flows (exits target same-year Exit)
 links_rows = []
 for i in range(len(YEARS) - 1):
     y0, y1 = YEARS[i], YEARS[i+1]
     s0 = SNAP.loc[SNAP['year'] == y0, ['REGN','bucket','w_t','w_raw']].rename(
         columns={'bucket':'cat_from','w_t':'w','w_raw':'raw'})
     s1 = SNAP.loc[SNAP['year'] == y1, ['REGN','bucket']].rename(columns={'bucket':'cat_to'})
-
-    # Active flows (banks present at both y0 and y1)
     both = s0.merge(s1, on='REGN', how='inner').dropna(subset=['cat_from','cat_to','w'])
     if not both.empty:
         agg = (both.groupby(['cat_from','cat_to'], as_index=False)
@@ -218,8 +192,6 @@ for i in range(len(YEARS) - 1):
         agg['level_to']   = y1
         agg['flow_type']  = 'active'
         links_rows.append(agg)
-
-    # Exit flows (banks present at y0 but missing at y1)
     gone = s0.merge(s1[['REGN']], on='REGN', how='left', indicator=True)
     gone = gone.loc[gone['_merge'] == 'left_only', ['REGN','cat_from','w','raw']]
     if not gone.empty:
@@ -231,12 +203,8 @@ for i in range(len(YEARS) - 1):
         agx = agx.merge(raw_sum_x, on='cat_from', how='left')
         agx['cat_to']     = EXIT_LABEL
         agx['level_from'] = y0
-        if y1 == LAST_COL_YEAR:
-            agx['level_to']   = LAST_COL_YEAR
-            agx['flow_type']  = 'exit_final'
-        else:
-            agx['level_to']   = y0
-            agx['flow_type']  = 'exit'
+        agx['level_to']   = y0
+        agx['flow_type']  = 'exit'
         links_rows.append(agx[['cat_from','cat_to','weight','count','raw_sum','level_from','level_to','flow_type']])
 
 links = pd.concat(links_rows, ignore_index=True) if links_rows else pd.DataFrame(
@@ -244,21 +212,16 @@ links = pd.concat(links_rows, ignore_index=True) if links_rows else pd.DataFrame
 if links.empty:
     raise RuntimeError('No flows computed. Check availability across step years.')
 
-# ------------------------------
-# Deterministic Node Grid (columns = YEARS, rows = fixed order)
-# ------------------------------
+# --- Node grid (fixed bands)
 cat_order = ['State ≥50%', 'State 20–50%', 'State 10–20%', 'State 0–10%', 'State 0%', UNKNOWN_LABEL, EXIT_LABEL]
-
-# X positions: equal spacing (strictly increasing). Tiny epsilon for any Exit in same column.
 LEFT_MARGIN, RIGHT_MARGIN = 0.08, 0.04
 ncol = len(YEARS)
 dx = (1 - LEFT_MARGIN - RIGHT_MARGIN) / (max(ncol - 1, 1))
 xpos = {y: (LEFT_MARGIN + i * dx if ncol > 1 else 0.5) for i, y in enumerate(YEARS)}
-EPS_EXIT = 1e-6 if ncol > 1 else 0.0
+EPS_EXIT = (dx * 0.0005) if ncol > 1 else 0.0005
 
-# Node labels & base x/y (we will overwrite y with stacked positions)
 labels: List[str] = []
-node_customdata: List[list] = []  # [[year, category], ...]
+node_customdata: List[list] = []
 node_id: Dict[Tuple[int,str], int] = {}
 node_colors: List[str] = []
 xs: List[float] = []
@@ -270,91 +233,38 @@ for year in YEARS:
         labels.append(cat)
         node_customdata.append([year, cat])
         xs.append(xpos[year] + (EPS_EXIT if cat == EXIT_LABEL else 0.0))
-        ys.append(0.5)  # temp; will be set by stacked layout
+        ys.append(0.5)
         node_colors.append(NODE_COLORS.get(cat, 'rgba(150,150,150,0.85)'))
 
-# --- Compute node 'values' for vertical stacking (deterministic)
-node_vals_raw = (
-    SNAP.groupby(['year','bucket'], as_index=False)['w_raw']
-        .sum()
-        .rename(columns={'w_raw': 'val'})
-)
-vals = {(int(r.year), str(r.bucket)): float(r.val) for r in node_vals_raw.itertuples(index=False)}
-
-# Exit rows: base the value on exit-link totals per **target year** so final exits inflate the last column
-exit_by_target = (
-    links[links['cat_to'] == EXIT_LABEL]
-        .groupby(['level_to'], as_index=False)['weight']
-        .sum()
-        .rename(columns={'level_to': 'year', 'weight': 'val'})
-)
-for r in exit_by_target.itertuples(index=False):
-    vals[(int(r.year), EXIT_LABEL)] = float(r.val)
-
-# Stacked layout per year (deterministic)
 Y_TOP_MARGIN, Y_BOTTOM_MARGIN = 0.06, 0.06
-# Adaptive small gap so everything fits in the viewport
-VERTICAL_GAP = 0.02
-MIN_FRAC = 1e-4  # minimal share to preserve order when a category is zero
-
+BANDS = len(cat_order)
+GAP = 0.02
+usable = max(1.0 - Y_TOP_MARGIN - Y_BOTTOM_MARGIN - GAP * (BANDS - 1), 1e-6)
+band_h = usable / BANDS
+cat_ycenter: Dict[str, float] = {}
+cursor = Y_TOP_MARGIN
+for cat in cat_order:
+    cat_ycenter[cat] = cursor + band_h / 2.0
+    cursor += band_h + GAP
 for year in YEARS:
-    series = [max(vals.get((year, cat), 0.0), 0.0) for cat in cat_order]
-    total = float(sum(series))
-    gap_space = VERTICAL_GAP * (len(cat_order) - 1)
-    drawable = max(1.0 - Y_TOP_MARGIN - Y_BOTTOM_MARGIN - gap_space, 1e-6)
+    for cat in cat_order:
+        ys[node_id[(year, cat)]] = cat_ycenter[cat]
 
-    # Convert to fractions, enforce a tiny floor so zero categories keep their slot
-    if total > 0:
-        fracs = [max(v / total, MIN_FRAC) for v in series]
-        ssum = sum(fracs)
-        fracs = [f / ssum for f in fracs]
-    else:
-        fracs = [1.0 / len(cat_order)] * len(cat_order)
-
-    y_cursor = Y_TOP_MARGIN
-    for ci, cat in enumerate(cat_order):
-        h = drawable * fracs[ci]
-        y_center = y_cursor + h / 2
-        ys[node_id[(year, cat)]] = y_center
-        y_cursor += h + VERTICAL_GAP
-
-# Diagnostics
-node_years = sorted({y for (y, _) in node_id.keys()})
-print('[diag] YEARS (used):', YEARS)
-print('[diag] X positions by year:')
-for y in YEARS:
-    uniq = sorted(set(round(xs[node_id[(y, c)]], 5) for c in cat_order))
-    print(f'  {y}: {uniq}')
-
-# ------------------------------
-# Link values + modes
-# ------------------------------
+# --- Link values
 step_tot = (links.groupby(['level_from','level_to'])['weight'].transform('sum'))
 links['value_abs']   = links['weight'] / UNIT_SCALE
 links['value_share'] = np.where(step_tot > 0, 100.0 * links['weight'] / step_tot, 0.0)
 links['raw_abs']     = links['raw_sum'] / UNIT_SCALE
-
 sources = [node_id[(r.level_from, r.cat_from)] for r in links.itertuples(index=False)]
 targets = [node_id[(r.level_to,   r.cat_to  )] for r in links.itertuples(index=False)]
-
-# Validate strict left→right (important for exits)
-srcx = np.array([xs[s] for s in sources])
-tgtx = np.array([xs[t] for t in targets])
-viol = int(np.sum(srcx >= tgtx - 1e-12))
-if viol:
-    print(
-        f"[diag] WARNING: {viol} link(s) violate x[source] < x[target]. "
-        f"Consider increasing EPS_EXIT slightly if nodes get pushed."
-    )
-
 values_abs   = links['value_abs'].astype(float).tolist()
 values_share = links['value_share'].astype(float).tolist()
 link_colors  = [GREEN if ft == 'active' else RED for ft in links['flow_type']]
-
-# customdata: [share, raw_abs]
 customdata = np.stack([
     links['value_share'].to_numpy(),
-    links['raw_abs'].fillna(0).to_numpy()
+    links['raw_abs'].fillna(0).to_numpy(),
+    links['level_from'].to_numpy(),
+    links['level_to'].to_numpy()
 ], axis=1)
 
 hovertemplate = (
@@ -363,11 +273,11 @@ hovertemplate = (
     'Raw MA sum: %{customdata[1]:,.1f} ' + UNIT_LABEL + '<br>'
     'Thickness value (current mode): %{value:,.2f}<br>'
     'Share of step total: %{customdata[0]:.1f}%'
+    '<extra></extra>'
 )
 
-# --- Single STRICT trace (no auto arrangement) ---
 sankey = go.Sankey(
-    arrangement='perpendicular',
+    arrangement='fixed',
     domain=dict(x=[0.0, 1.0], y=[0.0, 1.0]),
     node=dict(
         pad=NODE_PAD,
@@ -382,7 +292,7 @@ sankey = go.Sankey(
     link=dict(
         source=sources,
         target=targets,
-        value=values_abs,              # default: absolute
+        value=values_abs,
         color=link_colors,
         customdata=customdata,
         hovertemplate=hovertemplate,
@@ -390,14 +300,13 @@ sankey = go.Sankey(
 )
 
 fig = go.Figure(data=[sankey])
-# Year headers above each column (paper coords)
 annotations = [dict(x=xpos[y], y=0.985, xref='paper', yref='paper', text=str(y),
                     showarrow=False, xanchor='center', yanchor='bottom',
                     font=dict(size=12)) for y in YEARS]
 fig.update_layout(
     title={'text': (
             f"Ownership buckets (step={STEP_YEARS}y) — Weight = {MA_MONTHS}M MA of {INDICATOR_COL} "
-            f"(last column uses RAW year‑end; abs in {UNIT_LABEL}, or % of step)"
+            f"(abs in {UNIT_LABEL}, or % of step)"
            ),
            'x': 0.02, 'xanchor': 'left'},
     autosize=True,
@@ -414,47 +323,169 @@ fig.update_layout(
         dict(
             type='buttons', x=0.30, y=0.99, xanchor='left', yanchor='top',
             buttons=[
-                dict(label='Reset positions', method='restyle', args=[{'node.x': [xs], 'node.y': [ys]}, [0]]),
+                dict(label='Reset positions', method='relayout', args=[{'sankey[0].node.x': xs, 'sankey[0].node.y': ys}]),
             ]
         ),
-        # add a save current state to svg button
-        dict(
-            type='buttons', x=0.60, y=0.99, xanchor='left', yanchor='top',
-            buttons=[
-                dict(label='Save current view to SVG', method='animate', args=[None, {'frame': {'duration': 0, 'redraw': False},
-                                                                                 'fromcurrent': True,
-                                                                                 'transition': {'duration': 0, 'easing': 'linear'}}]),
-            ]
-        )
     ]
 )
 
-# --- Make the HTML fill the viewport (no clipping) ---
+# --- Full-viewport HTML + Column Toggle UI + clean SVG export ---
+JS_VALUES_ABS = json.dumps(values_abs)
+JS_VALUES_SHARE = json.dumps(values_share)
+JS_YEARS = json.dumps([int(y) for y in YEARS])
+JS_LINK_FROM = json.dumps([int(x) for x in links['level_from'].tolist()])
+JS_LINK_TO = json.dumps([int(x) for x in links['level_to'].tolist()])
+
 post_script = (
-    """
-    (function(){
-      var gd = document.getElementById('sankey_vp');
-      function resize(){
-        document.documentElement.style.height = '100%';
-        document.body.style.cssText = 'height:100%;margin:0;overflow:hidden;';
-        if (gd){
-          gd.style.position = 'fixed';
-          gd.style.top = '0';
-          gd.style.left = '0';
-          gd.style.right = '0';
-          gd.style.bottom = '0';
-          gd.style.width = '100vw';
-          gd.style.height = '100vh';
-          if (window.Plotly && gd.data) {
-            Plotly.relayout(gd, {autosize:true, margin:{l:16,r:16,t:56,b:12}});
-            Plotly.Plots.resize(gd);
-          }
-        }
-      }
-      window.addEventListener('resize', resize);
-      resize();
-    })();
-    """
+    "(function(){\n"
+    "  var gd = document.getElementById('sankey_vp');\n"
+    "  var VALUES_ABS = " + JS_VALUES_ABS + ";\n"
+    "  var VALUES_SHARE = " + JS_VALUES_SHARE + ";\n"
+    "  var YEARS = " + JS_YEARS + ";\n"
+    "  var LINK_FROM = " + JS_LINK_FROM + ";\n"
+    "  var LINK_TO = " + JS_LINK_TO + ";\n"
+    "  gd.__useShare = false;\n"
+    "  if (gd && gd.addEventListener) {\n"
+    "    gd.on && gd.on('plotly_restyle', function(e){ try {\n"
+    "      if (e && e[0] && e[0]['link.value']) {\n"
+    "        var arr = e[0]['link.value'][0];\n"
+    "        function eq(a,b){ if(!a||!b||a.length!==b.length) return false; for(var i=0;i<a.length;i++){ if(a[i]!==b[i]) return false;} return true;}\n"
+    "        gd.__useShare = eq(arr, VALUES_SHARE) ? true : eq(arr, VALUES_ABS) ? false : gd.__useShare;\n"
+    "      }\n"
+    "    } catch(err){} });\n"
+    "  }\n\n"
+    "  function ensureUi(){\n"
+    "    var host = document.getElementById('sankey_ui');\n"
+    "    if (!host){\n"
+    "      host = document.createElement('div');\n"
+    "      host.id = 'sankey_ui';\n"
+    "      host.style.position = 'fixed';\n"
+    "      host.style.top = '8px';\n"
+    "      host.style.right = '12px';\n"
+    "      host.style.zIndex = '50';\n"
+    "      host.style.fontFamily = 'sans-serif';\n"
+    "      host.style.background = 'rgba(255,255,255,0.85)';\n"
+    "      host.style.backdropFilter = 'blur(2px)';\n"
+    "      host.style.padding = '6px 8px';\n"
+    "      host.style.border = '1px solid #ddd';\n"
+    "      host.style.borderRadius = '8px';\n"
+    "      document.body.appendChild(host);\n"
+    "    }\n"
+    "    if (!document.getElementById('save_svg_btn')){\n"
+    "      var row = document.createElement('div');\n"
+    "      row.style.display = 'flex';\n"
+    "      row.style.gap = '6px';\n"
+    "      row.style.alignItems = 'center';\n"
+    "      var btn = document.createElement('button');\n"
+    "      btn.id = 'save_svg_btn';\n"
+    "      btn.textContent = 'Save SVG';\n"
+    "      btn.style.padding = '6px 10px';\n"
+    "      btn.style.border = '1px solid #ccc';\n"
+    "      btn.style.borderRadius = '6px';\n"
+    "      btn.style.background = '#fafafa';\n"
+    "      btn.style.cursor = 'pointer';\n"
+    "      btn.onclick = function(){\n"
+    "        var host = document.getElementById('sankey_ui');\n"
+    "        var modebar = document.querySelector('.modebar');\n"
+    "        var prev1 = host ? host.style.display : null;\n"
+    "        var prev2 = modebar ? modebar.style.display : null;\n"
+    "        if (host) host.style.display = 'none';\n"
+    "        if (modebar) modebar.style.display = 'none';\n"
+    "        if (window.Plotly && gd){\n"
+    "          Plotly.downloadImage(gd, { format: 'svg', filename: (document.title || 'sankey').replace(/\\s+/g,'_') })\n"
+    "            .finally(function(){\n"
+    "              if (host) host.style.display = prev1;\n"
+    "              if (modebar) modebar.style.display = prev2;\n"
+    "            });\n"
+    "        }\n"
+    "      };\n"
+    "      row.appendChild(btn);\n"
+    "      var form = document.createElement('div');\n"
+    "      form.id = 'year_toggles';\n"
+    "      form.style.display = 'flex';\n"
+    "      form.style.gap = '8px';\n"
+    "      form.style.flexWrap = 'wrap';\n"
+    "      form.style.maxWidth = '32vw';\n"
+    "      YEARS.forEach(function(y){\n"
+    "        var label = document.createElement('label');\n"
+    "        label.style.display = 'inline-flex';\n"
+    "        label.style.alignItems = 'center';\n"
+    "        label.style.gap = '4px';\n"
+    "        var cb = document.createElement('input');\n"
+    "        cb.type = 'checkbox'; cb.value = String(y); cb.checked = true;\n"
+    "        label.appendChild(cb);\n"
+    "        label.appendChild(document.createTextNode(String(y)));\n"
+    "        form.appendChild(label);\n"
+    "      });\n"
+    "      var apply = document.createElement('button');\n"
+    "      apply.textContent = 'Apply columns';\n"
+    "      apply.style.padding = '4px 8px';\n"
+    "      apply.style.border = '1px solid #ccc';\n"
+    "      apply.style.borderRadius = '6px';\n"
+    "      apply.style.background = '#fff';\n"
+    "      apply.style.cursor = 'pointer';\n"
+    "      apply.onclick = function(){\n"
+    "        var boxes = form.querySelectorAll('input[type=checkbox]');\n"
+    "        var keep = [];\n"
+    "        boxes.forEach(function(b){ if (b.checked) keep.push(parseInt(b.value)); });\n"
+    "        setYears(keep);\n"
+    "      };\n"
+    "      var all = document.createElement('button'); all.textContent = 'All'; all.onclick = function(){ var bs=form.querySelectorAll('input'); bs.forEach(function(b){b.checked=true;}); };\n"
+    "      var none = document.createElement('button'); none.textContent = 'None'; none.onclick = function(){ var bs=form.querySelectorAll('input'); bs.forEach(function(b){b.checked=false;}); };\n"
+    "      [all, none].forEach(function(b){ b.style.padding='4px 6px'; b.style.border='1px solid #ccc'; b.style.borderRadius='6px'; b.style.background='#fff'; b.style.cursor='pointer'; });\n"
+    "      host.appendChild(row);\n"
+    "      host.appendChild(document.createElement('div')).style.height='6px';\n"
+    "      host.appendChild(form);\n"
+    "      var ctl = document.createElement('div'); ctl.style.marginTop='6px'; ctl.style.display='flex'; ctl.style.gap='6px'; ctl.appendChild(apply); ctl.appendChild(all); ctl.appendChild(none);\n"
+    "      host.appendChild(ctl);\n"
+    "    }\n"
+    "  }\n\n"
+    "  function setYears(keepYears){\n"
+    "    if (!gd || !gd.data || !gd.data[0]) return;\n"
+    "    var tr = gd.data[0];\n"
+    "    var keepSet = (keepYears && keepYears.length ? new Set(keepYears) : new Set(YEARS));\n"
+    "    gd.__yearsKeep = keepSet;\n"
+    "    var labels = tr.node.label.slice();\n"
+    "    var colors = tr.node.color.slice();\n"
+    "    for (var i=0;i<tr.node.customdata.length;i++){\n"
+    "      var yr = tr.node.customdata[i][0];\n"
+    "      if (!keepSet.has(yr)){\n"
+    "        labels[i] = '';\n"
+    "        colors[i] = 'rgba(0,0,0,0)';\n"
+    "      }\n"
+    "    }\n"
+    "    var useShare = (gd.__useShare === true) ? true : (gd.__useShare === false ? false : false);\n"
+    "    var baseVals = useShare ? VALUES_SHARE : VALUES_ABS;\n"
+    "    var masked = baseVals.map(function(v, idx){\n"
+    "      var lf = LINK_FROM[idx];\n"
+    "      var lt = LINK_TO[idx];\n"
+    "      return (keepSet.has(lf) && keepSet.has(lt)) ? v : 0;\n"
+    "    });\n"
+    "    Plotly.restyle(gd, { 'node.label':[labels], 'node.color':[colors], 'link.value':[masked] }, [0]);\n"
+    "  }\n\n"
+    "  function resize(){\n"
+    "    document.documentElement.style.height = '100%';\n"
+    "    document.body.style.cssText = 'height:100%;margin:0;overflow:hidden;';\n"
+    "    if (gd){\n"
+    "      gd.style.position = 'fixed';\n"
+    "      gd.style.top = '0';\n"
+    "      gd.style.left = '0';\n"
+    "      gd.style.right = '0';\n"
+    "      gd.style.bottom = '0';\n"
+    "      gd.style.width = '100vw';\n"
+    "      gd.style.height = '100vh';\n"
+    "      if (window.Plotly && gd.data){\n"
+    "        Plotly.relayout(gd, {autosize:true, margin:{l:16,r:16,t:56,b:12}});\n"
+    "        Plotly.relayout(gd, {'sankey[0].node.x': gd.data[0].node.x, 'sankey[0].node.y': gd.data[0].node.y});\n"
+    "        Plotly.Plots.resize(gd);\n"
+    "      }\n"
+    "    }\n"
+    "    ensureUi();\n"
+    "  }\n"
+    "  window.addEventListener('resize', resize);\n"
+    "  setTimeout(resize, 0);\n"
+    "  window.__setYears = setYears;\n"
+    "})();\n"
 )
 
 ensure_dirs(OUT_DIR)
@@ -463,12 +494,15 @@ fig.write_html(
     include_plotlyjs='cdn', full_html=True,
     div_id='sankey_vp',
     default_width='100%', default_height='100%',
-    config={'responsive': True},
+    config={
+        'responsive': True,
+        'displaylogo': False,
+        'toImageButtonOptions': {
+            'format': 'svg',
+            'filename': OUT_FILE.replace('.html',''),
+            'height': None, 'width': None, 'scale': 1
+        }
+    },
     post_script=post_script,
 )
 print('Saved:', os.path.join(OUT_DIR, OUT_FILE))
-
-# save to svg (static snapshot)
-
-# fig.write_image(os.path.join(OUT_DIR, OUT_FILE.replace('.html','.svg')), width=1200, height=800, scale=2)
-# print('Saved:', os.path.join(OUT_DIR, OUT_FILE.replace('.html','.svg')))
