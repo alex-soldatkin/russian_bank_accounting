@@ -10,21 +10,30 @@
     - Interactive line charts for total assets (`total_assets_time_series.html`, `log_total_assets_time_series.html`).
     - Interactive histograms and density plots for Return on Assets (ROA) (`roa_histogram.html`, `roa_density_plot.html`).
 - The `ggsave` syntax for `lets-plot` has been corrected in both visualization scripts and documented in `memory-bank/techContext.md`.
+- **Sankey Dashboard Refactoring and Enhancements**:
+    - Data processing logic refactored from pandas to DuckDB.
+    - Implemented 'power' transformation mode for better visual distinction of flow thicknesses.
+    - Fixed SQL query for `regn_sample` aggregation to resolve `Parser Error`.
+    - Corrected passing of `power_exponent` parameter from UI to data processing.
+    - Ensured correct link colors, alpha values, and tooltip information (unique bank count, sample REGNs).
+    - Correctly positioned 'Exit' bucket node at the bottom.
+    - Fixed missing year markers on the Sankey diagram.
 
 ## What's left to build
-- **Remaining Visualization Scripts:** Continue creating individual Python scripts in `./visualisations` for the other proposed interactive dashboards using `lets-plot`.
-- **Outlier Detection:** Implement methods to identify and visualize outliers in the data.
-- **Static Visualizations:** Generate PNG and SVG versions of all visualizations (currently only HTML is generated).
-- **Refine Preprocessing:** Further refine data preprocessing and normalization strategies as needed for specific visualizations.
+- **Further Refinements**: Based on user feedback, fine-tune the 'power' transform exponent or other visual aspects for optimal clarity.
+- **Add Unit Tests**: Consider adding automated unit/integration tests for `compute_sankey_for_variables` and related data processing functions.
+- **Code Cleanup**: Address any remaining linting or type warnings.
 
 ## Current status
-The project has completed the initial schema exploration, visualization planning, data preprocessing, and the implementation of the first set of visualizations, with corrected saving syntax. The next phase involves implementing the remaining proposed visualizations.
+The project has completed the initial schema exploration, visualization planning, data preprocessing, and the implementation of the Sankey dashboard with all requested features and fixes. The next phase involves user verification and potential refinements.
 
 ## Known issues
-- No known issues at this stage.
+- Pylance errors related to `ModuleType` attribute assignments are noted but do not affect runtime functionality.
 
 ## Evolution of project decisions
 - The decision to use `uv` for environment management was made to ensure consistency and reproducibility.
 - The emphasis on `lets-plot` stems from the requirement for interactive and visually appealing dashboards.
 - The modular approach for EDA and visualization scripts is intended to improve maintainability and collaboration.
-- The detailed visualization proposals will guide the implementation phase.
+- The detailed visualization proposals guide the implementation phase.
+- The refactoring to DuckDB was a significant architectural decision to improve performance and address data aggregation issues.
+- The introduction of the 'power' transform mode and REGN sampling in tooltips addresses user feedback for better visual distinction and data insight.

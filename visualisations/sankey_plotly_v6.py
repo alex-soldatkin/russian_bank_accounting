@@ -506,3 +506,7 @@ fig.write_html(
     post_script=post_script,
 )
 print('Saved:', os.path.join(OUT_DIR, OUT_FILE))
+
+# save svg as well 
+
+fig.write_image(os.path.join(OUT_DIR, OUT_FILE.replace('.html','.svg')), format='svg', width=1200, height=800, scale=2)
