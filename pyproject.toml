@@ -11,4 +11,6 @@ dependencies = [
     "scikit-learn>=1.5.1",
     "pyarrow>=17.0.0",
     "tqdm>=4.67.1",
+    "plotly>=6.3.0",
+    "kaleido>=1.1.0",
 ]
