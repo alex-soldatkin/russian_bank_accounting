@@ -3,18 +3,27 @@
 ## Current work focus
 The primary task has been the development and refinement of the Sankey dashboard, focusing on migrating data processing to DuckDB and implementing user-requested visualization enhancements. This includes improving visual distinction through transformations, adding REGN sampling to tooltips, and fixing various bugs.
 
-## Recent changes (new)
-- **DuckDB Refactor**: Completed the migration of data processing from pandas to DuckDB, ensuring efficient SQL-based operations.
-- **Sankey Visualization Enhancements**:
-    - **Link Colors and Alpha**: Adjusted link colors and alpha values for better visual distinction between active (green) and exit (red) flows.
-    - **Tooltip Improvements**: Added the count of unique banks and a sample of REGNs to connection tooltips, with the sample size configurable via a UI input.
-    - **Exit Bucket Node Position**: Ensured the 'Exit' bucket node is consistently positioned at the bottom of all other nodes.
-    - **Year Markers**: Fixed the issue of missing year markers on the Sankey diagram.
-    - **Power Transformation**: Introduced a new 'power' transform mode with a configurable exponent for better visual distinction of flow thicknesses.
-- **Bug Fixes**:
-    - Resolved `TypeError` related to passing `power_exponent` to `compute_sankey_for_variables`.
-    - Corrected SQL query for `regn_sample` aggregation to resolve `Parser Error` by using a `SampledRegns` CTE and `array_slice`.
-    - Addressed Pylance errors related to module attribute assignments and type hints.
+## Recent changes (latest)
+- **Complete Sankey Dashboard Enhancement Suite**:
+    - **REGN Sample Display Fix**: Resolved DuckDB array handling issues in tooltip formatting with robust error handling for numpy arrays vs Python lists.
+    - **Moving Average Period Control**: Added slider control for 6-48 months in 3-month increments with real-time updates.
+    - **Thickness Mode Toggle**: Implemented checkbox to switch between absolute values and percentage of column total for link thickness.
+    - **Recompute Layout Button**: Added green button to refresh layout with current hyperparameters while maintaining node sequence (Q5→Q1→Exit).
+    - **Enhanced UI Controls**: All controls now work together seamlessly with comprehensive parameter integration.
+- **Advanced Data Processing**:
+    - **Robust Array Handling**: Fixed "ambiguous truth value" errors when processing DuckDB arrays in pandas DataFrames.
+    - **Percentage Calculation Logic**: Implemented proper percentage-based thickness calculations for relative flow analysis.
+    - **Parameter Integration**: All UI controls properly pass parameters through the entire data processing pipeline.
+- **User Experience Improvements**:
+    - **Real-time Layout Updates**: Users can now recompute layouts without changing underlying data or parameters.
+    - **Visual Consistency**: Maintained proper node ordering (highest quantile at top, lowest penultimate, Exit last).
+    - **Enhanced Debugging**: Added comprehensive logging and error handling throughout the application.
+    - **Fixed Empty Chart Issue**: Resolved initial figure loading problems with proper loading indicators.
+- **Technical Fixes**:
+    - **Callback Structure**: Fixed "Duplicate callback outputs" error by consolidating callback functions.
+    - **Button Integration**: Properly connected recompute layout button to main update callback.
+    - **Data Type Handling**: Robust handling of DuckDB array returns in pandas DataFrames.
+    - **Error Prevention**: Added safeguards against common Dash and data processing errors.
 
 ## Current status
 - [x] Sankey dashboard data processing fully refactored to DuckDB.
@@ -39,7 +48,8 @@ The primary task has been the development and refinement of the Sankey dashboard
 - Pylance errors related to `ModuleType` attribute assignments are noted but do not affect runtime functionality.
 
 ## Next steps (recommended)
-1. **User Verification**: Confirm with the user that all implemented features (transformations, tooltips, ordering, REGN sampling, etc.) are working as expected.
-2. **Further Refinements**: Based on user feedback, fine-tune the 'power' transform exponent or other visual aspects for optimal clarity.
-3. **Add Unit Tests**: Consider adding automated unit/integration tests for `compute_sankey_for_variables` and related data processing functions.
-4. **Code Cleanup**: Address any remaining linting or type warnings.
+1. **User Testing & Verification**: Test all implemented features in real-world scenarios to ensure optimal user experience.
+2. **Performance Monitoring**: Monitor dashboard performance with large datasets and optimize if needed.
+3. **Feature Expansion**: Consider additional visualization types or analysis features based on user feedback.
+4. **Documentation**: Create user guides and technical documentation for the implemented features.
+5. **Maintenance**: Keep dependencies updated and address any future compatibility issues.

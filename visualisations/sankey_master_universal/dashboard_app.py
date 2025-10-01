@@ -12,6 +12,9 @@ Controls exposed:
  - max year override input (MAX_YEAR_OVERRIDE; blank => auto)
  - transform mode (TRANSFORM_MODE)
  - unit scale (UNIT_SCALE) (options: 'bln' -> 1e9, 'none' -> 1)
+ - moving average months slider (MA_MONTHS)
+ - thickness mode toggle (% of column total vs absolute values)
+ - recompute layout button (reorganizes nodes with current hyperparameters)
  - node thickness (NODE_THICK)
  - node pad (NODE_PAD)
 
@@ -53,7 +56,7 @@ except Exception:
 
 # Host/port
 DASH_HOST = "localhost"
-DASH_PORT = 4325
+DASH_PORT = 2543
 
 # Create app
 def create_app():
@@ -111,6 +114,18 @@ def create_app():
             dcc.Dropdown(id='unit-scale', options=unit_options, value=('bln' if dd.UNIT_SCALE==1e9 else 'none'), clearable=False, style={'width':'180px','marginTop':'6px'})
         ], style={'marginBottom':'12px'}),
         html.Div([
+            html.Label("Moving Average (months):"),
+            dcc.Slider(id='ma-months-slider', min=6, max=48, step=3, value=dd.MA_MONTHS, marks={6:'6M', 12:'12M', 18:'18M', 24:'24M', 36:'36M', 48:'48M'}, tooltip={'placement':'bottom'}),
+        ], style={'width':'420px','marginBottom':'8px'}),
+        html.Div([
+            dcc.Checklist(
+                id='thickness-mode-toggle',
+                options=[{'label': 'Use % of column total for thickness', 'value': 'percentage'}],
+                value=[],  # Default to absolute values
+                style={'marginTop': '8px'}
+            )
+        ], style={'marginBottom':'12px'}),
+        html.Div([
             html.Label("Winsorize upper bound (%):"),
             dcc.Slider(id='winsor-slider', min=95.0, max=100.0, step=0.1, value=99.0, marks={95:'95', 98:'98', 99:'99', 99.9:'99.9', 100:'100'}, tooltip={'placement':'bottom'}),
         ], style={'width':'420px','marginBottom':'8px'}),
@@ -125,10 +140,29 @@ def create_app():
             dcc.Input(id='regn-sample-size-input', type='number', min=0, max=20, step=1, value=dd.REGN_SAMPLE_SIZE, style={'width':'180px'}),
             html.Span("  (0 = no sample)", style={'marginLeft':'8px','color':'#666','fontSize':'12px'})
         ], style={'marginBottom':'8px'}),
-        dcc.Loading(dcc.Graph(id='sankey-graph', figure={}, style={'height':'720px'}), type='circle'),
+        dcc.Loading(dcc.Graph(id='sankey-graph', figure={'data': [], 'layout': {'title': 'Loading Sankey diagram...'}}, style={'height':'720px'}), type='circle'),
         html.Div(id='variable-warning', style={'color':'#a00','marginTop':'8px'}),
         html.Pre(id='meta-output', style={'fontSize':'12px','whiteSpace':'pre-wrap','marginTop':'8px','color':'#333'}),
         html.Div([
+            html.Button(
+                'Recompute Layout',
+                id='recompute-layout-button',
+                style={
+                    'backgroundColor': '#28a745',
+                    'color': 'white',
+                    'border': 'none',
+                    'padding': '10px 20px',
+                    'borderRadius': '6px',
+                    'cursor': 'pointer',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold',
+                    'marginTop': '10px',
+                    'marginRight': '10px',
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.2)',
+                    'transition': 'all 0.2s ease'
+                },
+                n_clicks=0
+            ),
             html.Button(
                 'Save to SVG',
                 id='save-svg-button',
@@ -152,13 +186,23 @@ def create_app():
         # Add JavaScript for debugging button clicks
         html.Script("""
         document.addEventListener('DOMContentLoaded', function() {
-            var button = document.getElementById('save-svg-button');
-            if (button) {
-                button.addEventListener('click', function() {
-                    console.log('Button clicked! n_clicks should increment');
+            var saveButton = document.getElementById('save-svg-button');
+            var layoutButton = document.getElementById('recompute-layout-button');
+
+            if (saveButton) {
+                saveButton.addEventListener('click', function() {
+                    console.log('Save SVG button clicked! n_clicks should increment');
                 });
             } else {
                 console.error('Button with id save-svg-button not found!');
+            }
+
+            if (layoutButton) {
+                layoutButton.addEventListener('click', function() {
+                    console.log('Recompute Layout button clicked! n_clicks should increment');
+                });
+            } else {
+                console.error('Button with id recompute-layout-button not found!');
             }
         });
         """)
@@ -175,14 +219,19 @@ def create_app():
         Input('max-year-input', 'value'),
         Input('transform-mode', 'value'),
         Input('unit-scale', 'value'),
+        Input('ma-months-slider', 'value'), # New input for moving average months
+        Input('thickness-mode-toggle', 'value'), # New input for thickness mode
         Input('node-thick', 'value'),
         Input('node-pad', 'value'),
         Input('winsor-slider', 'value'),
         Input('regn-sample-size-input', 'value'),
         Input('power-exponent-slider', 'value'), # New input
+        Input('recompute-layout-button', 'n_clicks'), # New input for recompute layout button
     )
-    def update(size_variable, thickness_variable, n_quantiles, step_years, max_year_input, transform_mode, unit_scale_sel, node_thick, node_pad, winsor_pct, regn_sample_size, power_exponent): # New parameter
+    def update(size_variable, thickness_variable, n_quantiles, step_years, max_year_input, transform_mode, unit_scale_sel, ma_months, thickness_mode, node_thick, node_pad, winsor_pct, regn_sample_size, power_exponent, n_clicks): # New parameter
         import traceback
+        print(f"DEBUG: Update callback triggered with size_var={size_variable}, thick_var={thickness_variable}")
+        print(f"DEBUG: All parameters - n_q={n_quantiles}, step={step_years}, ma={ma_months}, transform={transform_mode}")
         if not size_variable:
             return {}, "No size variable selected", ""
         if not thickness_variable:
@@ -192,6 +241,7 @@ def create_app():
             dd.STEP_YEARS = int(step_years) if step_years is not None else dd.STEP_YEARS
             dd.MAX_YEAR_OVERRIDE = int(max_year_input) if (max_year_input is not None and str(max_year_input).strip() != '') else None
             dd.TRANSFORM_MODE = str(transform_mode) if transform_mode is not None else dd.TRANSFORM_MODE
+            dd.MA_MONTHS = int(ma_months) if ma_months is not None else dd.MA_MONTHS # New config for moving average months
             dd.NODE_THICK = int(node_thick) if node_thick is not None else dd.NODE_THICK
             dd.NODE_PAD = int(node_pad) if node_pad is not None else dd.NODE_PAD
             dd.UNIT_SCALE = 1e9 if unit_scale_sel == 'bln' else 1.0
@@ -206,13 +256,14 @@ def create_app():
                 size_var=size_variable,
                 thick_var=thickness_variable,
                 n_q=n_quantiles,
-                ma=dd.MA_MONTHS,
+                ma=ma_months, # Use the parameter directly instead of dd.MA_MONTHS
                 step=dd.STEP_YEARS,
                 max_y=dd.MAX_YEAR_OVERRIDE,
                 win=winsor_pct,
                 t_mode=transform_mode,
                 regn_sample_size=dd.REGN_SAMPLE_SIZE,
-                power_exponent=dd.POWER_EXPONENT # New parameter
+                power_exponent=dd.POWER_EXPONENT,
+                thickness_mode='percentage' if thickness_mode and 'percentage' in thickness_mode else 'absolute'
             )
             # Convert meta object to string for display
             meta_text = (
@@ -220,7 +271,7 @@ def create_app():
                 f"Thickness variable: {thickness_variable}\n"
                 f"Years: {meta.get('years', [])}\n"
                 f"Applied: STEP_YEARS={dd.STEP_YEARS}, MAX_YEAR_OVERRIDE={dd.MAX_YEAR_OVERRIDE}, "
-                f"TRANSFORM_MODE={dd.TRANSFORM_MODE}, UNIT_SCALE={dd.UNIT_SCALE}, NODE_THICK={dd.NODE_THICK}, NODE_PAD={dd.NODE_PAD}, POWER_EXPONENT={dd.POWER_EXPONENT}\n"
+                f"TRANSFORM_MODE={dd.TRANSFORM_MODE}, MA_MONTHS={ma_months}, UNIT_SCALE={dd.UNIT_SCALE}, NODE_THICK={dd.NODE_THICK}, NODE_PAD={dd.NODE_PAD}, POWER_EXPONENT={dd.POWER_EXPONENT}\n"
                 f"Debug Links (first 5): {links_df[['level_from', 'level_to']].head(20).to_dict('records') if not links_df.empty else 'No links'}"
             )
             return fig, "", meta_text
@@ -242,7 +293,9 @@ def create_app():
             print(f"DEBUG: Button clicked {n_clicks} times")
 
             if figure:
-                print(f"DEBUG: Figure exists, data length: {len(figure.get('data', []))}")
+                data = figure.get('data', [])
+                data_length = len(data) if hasattr(data, '__len__') else 0
+                print(f"DEBUG: Figure exists, data length: {data_length}")
 
                 try:
                     # Create filename with timestamp
@@ -257,7 +310,7 @@ def create_app():
 
                     # Fallback to default dimensions if not set
                     if not layout_width:
-                        layout_width = 1200  # Default width
+                        layout_width = 1700  # Default width
                     if not layout_height:
                         layout_height = 720  # Default height
 
@@ -313,6 +366,8 @@ def create_app():
 
         print("DEBUG: Initial call or no clicks")
         return ""
+
+
 
     return app
 

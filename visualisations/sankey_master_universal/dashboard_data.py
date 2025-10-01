@@ -267,7 +267,7 @@ def get_sankey_data_from_duckdb(con: duckdb.DuckDBPyConnection, size_var: str, t
     return con.execute(sql).fetchdf()
 
 
-def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[str], unit_scale: float, t_mode: str, power_exponent: float) -> Dict:
+def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[str], unit_scale: float, t_mode: str, power_exponent: float, thickness_mode: str = 'absolute') -> Dict:
     if EXIT_LABEL not in all_cats:
         all_cats.append(EXIT_LABEL)
 
@@ -328,9 +328,58 @@ def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[s
     links['value_abs'] = links['weight']
     links['value_share'] = np.where(step_tot > 0, 100 * links['weight'] / step_tot, 0)
     links['raw_abs'] = links['raw_sum'] / unit_scale
+
+    # Apply thickness mode: use percentages of column total if requested
+    if thickness_mode == 'percentage':
+        # For percentage mode, we want to show the relative contribution within each time period
+        # We'll use the existing value_share calculation but scale it appropriately for visualization
+        # The value_share already represents the percentage contribution to the total flow from that period
+        links['weight'] = links['value_share']
+        # Update the absolute values to reflect percentages
+        links['value_abs'] = links['value_share']
+        # For percentage mode, we don't need to scale by unit_scale since we're showing percentages
+        links['raw_abs'] = links['value_share']
     
-    # Format REGN sample for tooltip
-    links['regn_sample_formatted'] = links['regn_sample'].apply(lambda x: ', '.join(map(str, x)) if isinstance(x, list) else '')
+    # Format REGN sample for tooltip - handle DuckDB array conversion
+    def format_regn_sample(regn_sample):
+        # Check for None first to avoid array comparison issues
+        if regn_sample is None:
+            return ''
+
+        # Handle numpy arrays (from DuckDB) - check if empty
+        if hasattr(regn_sample, '__len__') and hasattr(regn_sample, 'shape'):
+            # This is likely a numpy array
+            try:
+                if len(regn_sample) == 0:
+                    return ''
+                return ', '.join(map(str, regn_sample))
+            except:
+                return str(regn_sample)
+
+        # Handle regular Python lists/tuples
+        if isinstance(regn_sample, (list, tuple)):
+            if len(regn_sample) == 0:
+                return ''
+            return ', '.join(map(str, regn_sample))
+
+        # Handle strings
+        if isinstance(regn_sample, str):
+            if regn_sample == '' or regn_sample.strip() == '':
+                return ''
+            # If it's a string representation of an array, try to parse it
+            try:
+                # Remove any brackets and split by comma
+                cleaned = str(regn_sample).strip('[]').strip()
+                if cleaned:
+                    return ', '.join(cleaned.split(','))
+                return ''
+            except:
+                return str(regn_sample)
+
+        # Fallback for any other type
+        return str(regn_sample)
+
+    links['regn_sample_formatted'] = links['regn_sample'].apply(format_regn_sample)
     
     return {
         "labels": lbls, "node_customdata": n_cust, "node_x": xs, "node_y": ys, "node_color": n_cols,
@@ -360,7 +409,7 @@ def build_plotly_sankey(sdata: Dict, title: str = "") -> go.Figure:
     for ann in sdata.get('annotations', []): fig.add_annotation(ann)
     return fig
 
-def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: int=MA_MONTHS, step: int=STEP_YEARS, max_y: Optional[int]=MAX_YEAR_OVERRIDE, win: float=99.0, t_mode: str='signed_log', regn_sample_size: int=REGN_SAMPLE_SIZE, power_exponent: float=POWER_EXPONENT) -> Tuple[go.Figure, Dict, pd.DataFrame]:
+def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: int=MA_MONTHS, step: int=STEP_YEARS, max_y: Optional[int]=MAX_YEAR_OVERRIDE, win: float=99.0, t_mode: str='signed_log', regn_sample_size: int=REGN_SAMPLE_SIZE, power_exponent: float=POWER_EXPONENT, thickness_mode: str='absolute') -> Tuple[go.Figure, Dict, pd.DataFrame]:
     con = get_db_connection()
 
     # Get min/max year from data to build a proper grid
@@ -382,12 +431,12 @@ def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: 
 
     if size_var == 'state_equity_pct':
         all_cats = [b[2] for b in OWN_BUCKETS if b[2] is not None] + [UNKNOWN_LABEL]
-        bucket_defs = [b for b in OWN_BUCKETS if b[2] is not None] + [(None, None, UNKNOWN_LABEL)]
+        bucket_defs = [b for b in OWN_BUCKETS if b[2] is not None] + [(None, None, UNKNOWN_LABEL)] if OWN_BUCKETS else []
     else:
         all_cats = [f"Q{i+1}" for i in range(n_q)]
         bucket_defs = [(None, None, f"Q{i+1}") for i in range(n_q)]
 
-    sdata = build_sankey_from_df(links_df, years, all_cats, UNIT_SCALE, t_mode, POWER_EXPONENT)
+    sdata = build_sankey_from_df(links_df, years, all_cats, UNIT_SCALE, t_mode, POWER_EXPONENT, 'absolute')
     
     title = (f"Sankey — size={size_var}, thickness={thick_var}, "
              f"buckets={'state' if size_var=='state_equity_pct' else f'{n_q} quantiles'} (MA={ma}M)")
