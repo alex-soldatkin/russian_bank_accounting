@@ -267,7 +267,7 @@ def get_sankey_data_from_duckdb(con: duckdb.DuckDBPyConnection, size_var: str, t
     return con.execute(sql).fetchdf()
 
 
-def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[str], unit_scale: float, t_mode: str, power_exponent: float, thickness_mode: str = 'absolute') -> Dict:
+def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[str], unit_scale: float, t_mode: str, power_exponent: float, thickness_mode: str = 'absolute', node_size_mode: str = 'absolute') -> Dict:
     if EXIT_LABEL not in all_cats:
         all_cats.append(EXIT_LABEL)
 
@@ -339,6 +339,95 @@ def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[s
         links['value_abs'] = links['value_share']
         # For percentage mode, we don't need to scale by unit_scale since we're showing percentages
         links['raw_abs'] = links['value_share']
+
+    # Calculate node values for sizing and tooltip information
+    # Group by year and category to get the total for each node
+    node_totals = links.groupby(['level_from', 'cat_from'])['weight'].sum().reset_index()
+    node_totals = node_totals.rename(columns={'level_from': 'year', 'cat_from': 'category', 'weight': 'node_weight'})
+
+    # Calculate overall total for each year (for percentage mode and tooltip)
+    year_totals = links.groupby('level_from')['weight'].sum().reset_index()
+    year_totals = year_totals.rename(columns={'level_from': 'year', 'weight': 'year_total'})
+
+    # Merge to get year totals for each node
+    node_totals = node_totals.merge(year_totals, left_on='year', right_on='year', how='left')
+
+    # Calculate % of column (existing) and % of total (new) for tooltips
+    node_totals['pct_of_column'] = np.where(
+        node_totals['year_total'] > 0,
+        100 * node_totals['node_weight'] / node_totals['year_total'],
+        0
+    )
+
+    # Calculate % of total (sum across all years for each category)
+    all_years_total = links['weight'].sum()
+    node_totals['pct_of_total'] = np.where(
+        all_years_total > 0,
+        100 * node_totals['node_weight'] / all_years_total,
+        0
+    )
+
+    # Calculate absolute values for tooltip (in original scale before unit conversion)
+    node_totals['abs_value'] = node_totals['node_weight'] * unit_scale
+
+    # Calculate node values based on mode
+    if node_size_mode == 'percentage':
+        # Use percentage of overall total for node sizing
+        node_totals['node_value'] = node_totals['pct_of_total']
+    else:
+        # Use absolute values for node sizing (default)
+        node_totals['node_value'] = node_totals['node_weight']
+
+    # Also handle exit nodes - they need values too
+    exit_nodes = []
+    for year in years[:-1]:  # Exit nodes only exist for years that have next years
+        exit_node_totals = links[
+            (links['level_from'] == year) &
+            (links['cat_to'] == EXIT_LABEL)
+        ].groupby('cat_to')['weight'].sum().reset_index()
+
+        if not exit_node_totals.empty:
+            exit_year_total = links[links['level_from'] == year]['weight'].sum()
+            if node_size_mode == 'percentage':
+                exit_node_totals['node_value'] = np.where(
+                    exit_year_total > 0,
+                    100 * exit_node_totals['weight'] / exit_year_total,
+                    0
+                )
+            else:
+                exit_node_totals['node_value'] = exit_node_totals['weight']
+
+            exit_node_totals['year'] = year + STEP_YEARS  # Exit nodes appear in the next year column
+            exit_node_totals['category'] = EXIT_LABEL
+            exit_nodes.append(exit_node_totals[['year', 'category', 'node_value']])
+
+    if exit_nodes:
+        exit_nodes_df = pd.concat(exit_nodes, ignore_index=True)
+        node_totals = pd.concat([node_totals, exit_nodes_df], ignore_index=True)
+
+    # Create node values array in the same order as the nodes were created
+    node_values = []
+    for y in years:
+        for c in sorted_cats:
+            if (y, c) in n_id:
+                # Find the corresponding node data
+                node_data = node_totals[
+                    (node_totals['year'] == y) &
+                    (node_totals['category'] == c)
+                ]
+                if not node_data.empty:
+                    node_values.append(node_data.iloc[0]['node_value'])
+                    # Update node_customdata to include tooltip information
+                    node_idx = n_id[(y, c)]
+                    pct_column = node_data.iloc[0]['pct_of_column']
+                    pct_total = node_data.iloc[0]['pct_of_total']
+                    abs_val = node_data.iloc[0]['abs_value']
+                    n_cust[node_idx] = [y, c, pct_column, pct_total, abs_val]
+                else:
+                    node_values.append(0)  # Default to 0 if no data
+                    # Update node_customdata with default values
+                    node_idx = n_id[(y, c)]
+                    n_cust[node_idx] = [y, c, 0, 0, 0]
     
     # Format REGN sample for tooltip - handle DuckDB array conversion
     def format_regn_sample(regn_sample):
@@ -394,7 +483,7 @@ def build_sankey_from_df(links: pd.DataFrame, years: List[int], all_cats: List[s
 
 def build_plotly_sankey(sdata: Dict, title: str = "") -> go.Figure:
     fig = go.Figure(go.Sankey(
-        node=dict(label=sdata['labels'], color=sdata['node_color'], x=sdata['node_x'], y=sdata['node_y'], pad=15, thickness=18, customdata=sdata['node_customdata'], hovertemplate="Year %{customdata[0]}<br>Bucket %{customdata[1]}<extra></extra>"),
+        node=dict(label=sdata['labels'], color=sdata['node_color'], x=sdata['node_x'], y=sdata['node_y'], pad=15, thickness=18, customdata=sdata['node_customdata'], hovertemplate="Year %{customdata[0]}<br>Bucket %{customdata[1]}<br>% of column: %{customdata[2]:.1f}%<br>% of total: %{customdata[3]:.1f}%<br>Absolute value: %{customdata[4]:,.1f} " + UNIT_LABEL + "<extra></extra>"),
         link=dict(source=sdata['link_source'], target=sdata['link_target'], value=sdata['values_abs'], color=sdata['link_color'], customdata=sdata['link_customdata'], hovertemplate=sdata['hovertemplate']),
         arrangement='perpendicular'
     ))
@@ -409,7 +498,7 @@ def build_plotly_sankey(sdata: Dict, title: str = "") -> go.Figure:
     for ann in sdata.get('annotations', []): fig.add_annotation(ann)
     return fig
 
-def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: int=MA_MONTHS, step: int=STEP_YEARS, max_y: Optional[int]=MAX_YEAR_OVERRIDE, win: float=99.0, t_mode: str='signed_log', regn_sample_size: int=REGN_SAMPLE_SIZE, power_exponent: float=POWER_EXPONENT, thickness_mode: str='absolute') -> Tuple[go.Figure, Dict, pd.DataFrame]:
+def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: int=MA_MONTHS, step: int=STEP_YEARS, max_y: Optional[int]=MAX_YEAR_OVERRIDE, win: float=99.0, t_mode: str='signed_log', regn_sample_size: int=REGN_SAMPLE_SIZE, power_exponent: float=POWER_EXPONENT, thickness_mode: str='absolute', node_size_mode: str='absolute') -> Tuple[go.Figure, Dict, pd.DataFrame]:
     con = get_db_connection()
 
     # Get min/max year from data to build a proper grid
@@ -436,7 +525,7 @@ def compute_sankey_for_variables(size_var: str, thick_var: str, n_q: int=5, ma: 
         all_cats = [f"Q{i+1}" for i in range(n_q)]
         bucket_defs = [(None, None, f"Q{i+1}") for i in range(n_q)]
 
-    sdata = build_sankey_from_df(links_df, years, all_cats, UNIT_SCALE, t_mode, POWER_EXPONENT, 'absolute')
+    sdata = build_sankey_from_df(links_df, years, all_cats, UNIT_SCALE, t_mode, POWER_EXPONENT, thickness_mode, node_size_mode)
     
     title = (f"Sankey — size={size_var}, thickness={thick_var}, "
              f"buckets={'state' if size_var=='state_equity_pct' else f'{n_q} quantiles'} (MA={ma}M)")

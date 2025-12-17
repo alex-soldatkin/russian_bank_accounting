@@ -48,13 +48,14 @@ print("Rows loaded:", len(df))
 # ------------------------------------------------------------------
 preferred = [
     # Percent / ratio metrics (include if present)
-    'ROA', 'ROE', 'NIM', 'npl_ratio', 'llp_to_loans_ratio', 'coverage_ratio',
+    'ROA',  'NIM', 'npl_ratio', 'llp_to_loans_ratio', 'coverage_ratio',
     'loan_to_deposit_ratio', 
     # 'log_total_assets',
+    # 'ROE',"state_loans","state_equity_pct", 
 
     # Core financials (amounts)
     "total_assets", "total_passives", "total_equity", "total_liabilities",
-    "state_equity_pct", "state_loans", "individual_loans", "company_loans",
+     "individual_loans", "company_loans",
     "total_loans", "npl_amount", "provision_amount", "total_deposits",
     "total_liquid_assets", "interest_income", "operating_income",
     "interest_expense", "operating_expense", "net_interest_income",

@@ -14,6 +14,7 @@ Controls exposed:
  - unit scale (UNIT_SCALE) (options: 'bln' -> 1e9, 'none' -> 1)
  - moving average months slider (MA_MONTHS)
  - thickness mode toggle (% of column total vs absolute values)
+ - node size mode toggle (% of overall total vs absolute values)
  - recompute layout button (reorganizes nodes with current hyperparameters)
  - node thickness (NODE_THICK)
  - node pad (NODE_PAD)
@@ -124,6 +125,14 @@ def create_app():
                 value=[],  # Default to absolute values
                 style={'marginTop': '8px'}
             )
+        ], style={'marginBottom':'8px'}),
+        html.Div([
+            dcc.Checklist(
+                id='node-size-mode-toggle',
+                options=[{'label': 'Use % of overall total for node size', 'value': 'percentage'}],
+                value=[],  # Default to absolute values
+                style={'marginTop': '8px'}
+            )
         ], style={'marginBottom':'12px'}),
         html.Div([
             html.Label("Winsorize upper bound (%):"),
@@ -221,6 +230,7 @@ def create_app():
         Input('unit-scale', 'value'),
         Input('ma-months-slider', 'value'), # New input for moving average months
         Input('thickness-mode-toggle', 'value'), # New input for thickness mode
+        Input('node-size-mode-toggle', 'value'), # New input for node size mode
         Input('node-thick', 'value'),
         Input('node-pad', 'value'),
         Input('winsor-slider', 'value'),
@@ -228,7 +238,7 @@ def create_app():
         Input('power-exponent-slider', 'value'), # New input
         Input('recompute-layout-button', 'n_clicks'), # New input for recompute layout button
     )
-    def update(size_variable, thickness_variable, n_quantiles, step_years, max_year_input, transform_mode, unit_scale_sel, ma_months, thickness_mode, node_thick, node_pad, winsor_pct, regn_sample_size, power_exponent, n_clicks): # New parameter
+    def update(size_variable, thickness_variable, n_quantiles, step_years, max_year_input, transform_mode, unit_scale_sel, ma_months, thickness_mode, node_size_mode, node_thick, node_pad, winsor_pct, regn_sample_size, power_exponent, n_clicks): # New parameter
         import traceback
         print(f"DEBUG: Update callback triggered with size_var={size_variable}, thick_var={thickness_variable}")
         print(f"DEBUG: All parameters - n_q={n_quantiles}, step={step_years}, ma={ma_months}, transform={transform_mode}")
@@ -263,7 +273,8 @@ def create_app():
                 t_mode=transform_mode,
                 regn_sample_size=dd.REGN_SAMPLE_SIZE,
                 power_exponent=dd.POWER_EXPONENT,
-                thickness_mode='percentage' if thickness_mode and 'percentage' in thickness_mode else 'absolute'
+                thickness_mode='percentage' if thickness_mode and 'percentage' in thickness_mode else 'absolute',
+                node_size_mode='percentage' if node_size_mode and 'percentage' in node_size_mode else 'absolute'
             )
             # Convert meta object to string for display
             meta_text = (
